@@ -1,40 +1,67 @@
-import imgui
+"""Utility helpers shared by GUI and analysis code.
 
-def do_editable_raw(preamble, value, units="", width=100):
-	imgui.text(preamble)
-	imgui.same_line()
-	imgui.push_item_width(width)
-	imgui.push_id(preamble)
-	c, v = imgui.input_text(units, str(value))
-	imgui.pop_id()
-	imgui.pop_item_width()
+This module historically depended on `imgui` for an experimental UI. To keep
+`inclusive_range` usable without the `imgui` dependency, `imgui` is imported
+only when required.
+"""
 
-	return (c, v)
+from __future__ import annotations
 
-def do_editable(preamble, value, units="", width=100, enable=True):
-	if not enable:
-		imgui.text_disabled(f"{preamble} {value} {units}")
-		return value
+from typing import Any, List, Tuple, TypeVar
 
-	type_ = type(value)
+try:
+    import imgui  # type: ignore
+except Exception:  # pragma: no cover - only needed in imgui-enabled contexts
+    imgui = None  # type: ignore
 
-	_, v = do_editable_raw(preamble, value, units, width)
+T = TypeVar("T")
 
-	if v != value:
-		try:
-			v = type_(v)
-		except:
-			return value
 
-		return v
-	else:
-		return value
+def _require_imgui():
+    """Return the imgui module or raise a clear ImportError."""
+    if imgui is None:
+        raise ImportError("imgui is required for editable UI helpers in util.py")
+    return imgui
 
-def inclusive_range(start, stop, step):
-	if step == 0: return []
-	o = []
-	while start <= stop:
-		o.append(start)
-		start += step
-	return o
+def do_editable_raw(preamble: str, value: Any, units: str = "", width: int = 100) -> Tuple[bool, str]:
+    """Render a raw editable text field in imgui and return (changed, value)."""
+    im = _require_imgui()
+    im.text(preamble)
+    im.same_line()
+    im.push_item_width(width)
+    im.push_id(preamble)
+    changed, new_value = im.input_text(units, str(value))
+    im.pop_id()
+    im.pop_item_width()
 
+    return (changed, new_value)
+
+def do_editable(preamble: str, value: T, units: str = "", width: int = 100, enable: bool = True) -> T:
+    """Render an editable field and coerce back to the input value's type."""
+    im = _require_imgui()
+    if not enable:
+        im.text_disabled(f"{preamble} {value} {units}")
+        return value
+
+    type_ = type(value)
+
+    _, new_value = do_editable_raw(preamble, value, units, width)
+
+    if new_value != value:
+        try:
+            new_value = type_(new_value)
+        except Exception:
+            return value
+
+        return new_value
+    return value
+
+def inclusive_range(start: float, stop: float, step: float) -> List[float]:
+    """Return an inclusive range, like `range` but including the stop value."""
+    if step == 0:
+        return []
+    out: List[float] = []
+    while start <= stop:
+        out.append(start)
+        start += step
+    return out

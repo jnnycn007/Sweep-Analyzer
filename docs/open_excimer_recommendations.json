@@ -1,0 +1,27 @@
+{
+  "time_weighted_ema": true,
+  "intensity_ema_span": 15,
+  "power_ema_span": 86,
+  "overlay_ema_span": 15,
+  "resample_seconds": 3,
+  "align_tolerance_s": 6,
+  "derived": {
+    "sw3_median_dt_s": 17.141030073165894,
+    "sw3_points_per_hour": 104.26839984357156,
+    "sw3_slowdown_ratio": 1.0674947483636867,
+    "sw3_cliff_sample_idx_median": 34079.5,
+    "power_median_dt_s": 1.4519493579864502,
+    "optical_roughness_by_span": {
+      "15": 0.03127754195224626,
+      "31": 0.015837198552688635,
+      "61": 0.00818838007059593,
+      "121": 0.004207221325964116,
+      "241": 0.002142293158184878
+    }
+  },
+  "notes": [
+    "Use time-aware EMA to remove sample-count bias from variable SW3 cadence.",
+    "Keep legend outside plot area for large groups (already implemented).",
+    "Render missing log intervals as gaps (already implemented via NaN line breaks)."
+  ]
+}
